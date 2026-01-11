@@ -1,0 +1,16 @@
+/build
+/.gradle
+/app/build
+.externalNativeBuild
+.cxx
+.kotlin/
+.idea/
+*.iml
+*.iws
+local.properties
+/htimer-release-key
+/app/release
+.DS_Store
+Thumbs.db
+.idea/caches
+.idea/libraries
