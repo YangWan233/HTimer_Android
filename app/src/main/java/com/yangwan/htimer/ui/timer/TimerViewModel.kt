@@ -17,19 +17,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.kociemba.twophase.Search
+import org.kociemba.twophase.Tools
 
 class TimerViewModel : ViewModel() {
     private val _state = MutableStateFlow(TimerState())
     val state = _state.asStateFlow()
 
-    var scramble = mutableStateOf(Scrambler.next())
+    var scramble = mutableStateOf("Loading...")
         private set
 
-    private val _cubeState = mutableStateOf(CubeState().apply { applyScramble(scramble.value) })
+    private val _cubeState = mutableStateOf(CubeState())
     val cubeState: State<CubeState> = _cubeState
 
     private var timerJob: Job? = null
     private var prepareJob: Job? = null
+
+    init {
+        viewModelScope.launch(Dispatchers.Default) {
+            Search.init()
+            updateScramble()
+        }
+    }
 
     fun handlePress() {
         when (_state.value.status) {
@@ -85,8 +94,9 @@ class TimerViewModel : ViewModel() {
         viewModelScope.launch {
             val result = withContext(Dispatchers.Default) {
                 val nextScramble = Scrambler.next()
+                val facelets = Tools.fromScramble(nextScramble)
                 val newCube = CubeState()
-                newCube.applyScramble(nextScramble)
+                newCube.applyFacelets(facelets)
                 nextScramble to newCube
             }
             scramble.value = result.first

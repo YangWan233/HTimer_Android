@@ -3,99 +3,48 @@ package com.yangwan.htimer.domain.timer
 enum class CubeFace { U, D, L, R, F, B }
 
 class CubeState {
+    // 保持你原来的矩阵结构
     var faces = mutableMapOf(
-        CubeFace.U to Array(3) { IntArray(3) },
-        CubeFace.D to Array(3) { IntArray(3) { 1 } },
-        CubeFace.L to Array(3) { IntArray(3) { 2 } },
-        CubeFace.R to Array(3) { IntArray(3) { 3 } },
-        CubeFace.F to Array(3) { IntArray(3) { 4 } },
-        CubeFace.B to Array(3) { IntArray(3) { 5 } }
+        CubeFace.U to Array(3) { IntArray(3) { 0 } }, // 0: 白
+        CubeFace.D to Array(3) { IntArray(3) { 1 } }, // 1: 黄
+        CubeFace.L to Array(3) { IntArray(3) { 2 } }, // 2: 橙
+        CubeFace.R to Array(3) { IntArray(3) { 3 } }, // 3: 红
+        CubeFace.F to Array(3) { IntArray(3) { 4 } }, // 4: 绿
+        CubeFace.B to Array(3) { IntArray(3) { 5 } }  // 5: 蓝
     )
 
-    fun applyScramble(scramble: String) {
-        if (scramble.isBlank()) return
-        reset()
+    /**
+     * 核心：将 min2phase 的 54 位面片字符串直接填入矩阵
+     * 顺序：U1-U9, R1-R9, F1-F9, D1-D9, L1-L9, B1-B9
+     */
+    fun applyFacelets(facelets: String) {
+        if (facelets.length != 54) return
 
-        scramble.split(" ").filter { it.isNotBlank() }.forEach { move ->
-            val face = move[0]
-            val times = when {
-                move.endsWith("'") -> 3
-                move.endsWith("2") -> 2
-                else -> 1
-            }
-            repeat(times) { rotate(face.toString()) }
-        }
-    }
+        val facesOrder = arrayOf(
+            CubeFace.U, CubeFace.R, CubeFace.F,
+            CubeFace.D, CubeFace.L, CubeFace.B
+        )
 
-    private fun reset() {
-        faces[CubeFace.U]!!.forEach { it.fill(0) }
-        faces[CubeFace.D]!!.forEach { it.fill(1) }
-        faces[CubeFace.L]!!.forEach { it.fill(2) }
-        faces[CubeFace.R]!!.forEach { it.fill(3) }
-        faces[CubeFace.F]!!.forEach { it.fill(4) }
-        faces[CubeFace.B]!!.forEach { it.fill(5) }
-    }
-
-    private fun rotate(move: String) {
-        val f = CubeFace.valueOf(move)
-
-        val currentFace = faces[f]!!
-        val nextFace = Array(3) { IntArray(3) }
-        for (r in 0..2) {
-            for (c in 0..2) {
-                nextFace[c][2 - r] = currentFace[r][c]
-            }
-        }
-        for (i in 0..2) faces[f]!![i] = nextFace[i].copyOf()
-
-        when (f) {
-            CubeFace.U -> {
-                val temp = (0..2).map { faces[CubeFace.F]!![0][it] }
-                (0..2).forEach { faces[CubeFace.F]!![0][it] = faces[CubeFace.R]!![0][it] }
-                (0..2).forEach { faces[CubeFace.R]!![0][it] = faces[CubeFace.B]!![0][it] }
-                (0..2).forEach { faces[CubeFace.B]!![0][it] = faces[CubeFace.L]!![0][it] }
-                (0..2).forEach { faces[CubeFace.L]!![0][it] = temp[it] }
-            }
-
-            CubeFace.D -> {
-                val temp = (0..2).map { faces[CubeFace.F]!![2][it] }
-                (0..2).forEach { faces[CubeFace.F]!![2][it] = faces[CubeFace.L]!![2][it] }
-                (0..2).forEach { faces[CubeFace.L]!![2][it] = faces[CubeFace.B]!![2][it] }
-                (0..2).forEach { faces[CubeFace.B]!![2][it] = faces[CubeFace.R]!![2][it] }
-                (0..2).forEach { faces[CubeFace.R]!![2][it] = temp[it] }
-            }
-
-            CubeFace.L -> {
-                val temp = (0..2).map { faces[CubeFace.U]!![it][0] }
-                (0..2).forEach { faces[CubeFace.U]!![it][0] = faces[CubeFace.B]!![2 - it][2] }
-                (0..2).forEach { faces[CubeFace.B]!![2 - it][2] = faces[CubeFace.D]!![it][0] }
-                (0..2).forEach { faces[CubeFace.D]!![it][0] = faces[CubeFace.F]!![it][0] }
-                (0..2).forEach { faces[CubeFace.F]!![it][0] = temp[it] }
-            }
-
-            CubeFace.R -> {
-                val temp = (0..2).map { faces[CubeFace.U]!![it][2] }
-                (0..2).forEach { faces[CubeFace.U]!![it][2] = faces[CubeFace.F]!![it][2] }
-                (0..2).forEach { faces[CubeFace.F]!![it][2] = faces[CubeFace.D]!![it][2] }
-                (0..2).forEach { faces[CubeFace.D]!![it][2] = faces[CubeFace.B]!![2 - it][0] }
-                (0..2).forEach { faces[CubeFace.B]!![2 - it][0] = temp[it] }
-            }
-
-            CubeFace.F -> {
-                val temp = (0..2).map { faces[CubeFace.U]!![2][it] }
-                (0..2).forEach { faces[CubeFace.U]!![2][it] = faces[CubeFace.L]!![2 - it][2] }
-                (0..2).forEach { faces[CubeFace.L]!![2 - it][2] = faces[CubeFace.D]!![0][2 - it] }
-                (0..2).forEach { faces[CubeFace.D]!![0][2 - it] = faces[CubeFace.R]!![it][0] }
-                (0..2).forEach { faces[CubeFace.R]!![it][0] = temp[it] }
-            }
-
-            CubeFace.B -> {
-                val temp = (0..2).map { faces[CubeFace.U]!![0][it] }
-                (0..2).forEach { faces[CubeFace.U]!![0][it] = faces[CubeFace.R]!![it][2] }
-                (0..2).forEach { faces[CubeFace.R]!![it][2] = faces[CubeFace.D]!![2][2 - it] }
-                (0..2).forEach { faces[CubeFace.D]!![2][2 - it] = faces[CubeFace.L]!![2 - it][0] }
-                (0..2).forEach { faces[CubeFace.L]!![2 - it][0] = temp[it] }
+        var charIndex = 0
+        for (face in facesOrder) {
+            val grid = faces[face]!!
+            for (row in 0..2) {
+                for (col in 0..2) {
+                    grid[row][col] = when (facelets[charIndex]) {
+                        'U' -> 0
+                        'D' -> 1
+                        'L' -> 2
+                        'R' -> 3
+                        'F' -> 4
+                        'B' -> 5
+                        else -> 0
+                    }
+                    charIndex++
+                }
             }
         }
     }
+
+    // 你原有的 applyScramble 和 rotate 逻辑可以保留作为手动调试使用
+    // 但 ViewModel 现在会优先使用 applyFacelets
 }

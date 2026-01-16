@@ -1,4 +1,4 @@
-package cs.min2phase;
+package org.kociemba.twophase;
 
 import java.util.Random;
 import java.io.DataInput;

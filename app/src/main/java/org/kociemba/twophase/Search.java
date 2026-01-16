@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package cs.min2phase;
+package org.kociemba.twophase;
 
 /**
  * Rubik's Cube Solver.<br>
